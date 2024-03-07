@@ -70,4 +70,53 @@ public with sharing class TestOrderHandler {
 
         System.assertEquals(0, updatedOrdersList.size());
     }
+
+    @isTest
+    static void checkAccountInactiveOnCreationTest(){
+        Account account = DataFactory.createAccount('testAccount3');
+        insert account;
+
+        System.assertEquals(false, account.Active__c);
+    }
+
+    @isTest
+    static void checkAccountIsActiveOnOrderCreationTest(){
+        Account account = DataFactory.createAccount('testAccount4');
+        insert account;
+
+        Contract contract = DataFactory.createContract(account.Id);
+        insert contract;
+
+        List<Order> ordersList = DataFactory.createOrders(account.id, 1);
+        insert ordersList;
+
+        Account activatedAccount = [
+            SELECT Id, Name, Active__c
+            FROM Account
+            WHERE Name = 'testAccount4'
+        ];
+
+        System.assertEquals(true, activatedAccount.Active__c);
+    }
+
+    @isTest
+    static void checkAccountIsInactiveOnOrderDeletionTest(){
+        Account account = DataFactory.createAccount('testAccount5');
+        insert account;
+
+        Contract contract = DataFactory.createContract(account.Id);
+        insert contract;
+
+        List<Order> ordersList = DataFactory.createOrders(account.Id, 1);
+        insert ordersList;
+        delete ordersList;
+
+        Account deactivatedAccount = [
+            SELECT Id, Name, Active__c
+            FROM Account
+            WHERE Name = 'testAccount5'
+        ];
+
+        System.assertEquals(false, deactivatedAccount.Active__c);
+    }
 }
