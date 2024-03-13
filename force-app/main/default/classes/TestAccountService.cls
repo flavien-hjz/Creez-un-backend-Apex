@@ -4,8 +4,9 @@ public with sharing class TestAccountService{
     @TestSetup
     static void makeData(){
 
-        Account account = DataFactory.createAccount('testAccount1');
-        insert account;
+        // Create test accounts
+        Account testAccount1 = DataFactory.createAccount('testAccount1');
+        insert testAccount1;
 
         DataFactory.createOrdersCompleteProcess('testAccount2', 'testProduct2', 1000, 1, 1);
 
@@ -14,6 +15,8 @@ public with sharing class TestAccountService{
             FROM Account
             WHERE Name = 'testAccount2'
         ];
+
+        // Create a test task
         Task testTask = new Task(
             WhatId = testAccount2.Id,
             OwnerId = testAccount2.OwnerId,
@@ -27,48 +30,36 @@ public with sharing class TestAccountService{
     }
 
     @isTest
-    static void getAccoundIdToOrderMapWhenNoOrderTest(){
+    static void testGetAccoundIdToOrderMapWhenNoOrder(){
         
-        List<Account> testAccountsList = [
-            SELECT Id
-            FROM Account
-            WHERE Name = 'testAccount1'
-        ];
-        Set<Id> accountIdSet = (new Map<Id,SObject>(testAccountsList).keySet());
+        // Get test account Ids
+        Set<Id> accountIdSet = getAccountIdsByName('testAccount1');
 
         Test.startTest();
         Map<Id,Order> mapAccountIdToOrder = AccountService.getAccountIdToOrderMap(accountIdSet);
         Test.stopTest();
 
-        System.assertEquals(0, mapAccountIdToOrder.size());
+        System.assertEquals(0, mapAccountIdToOrder.size(), 'No order was expected for the account');
     }
 
     @isTest
-    static void getAccountIdToOrderMapWhenOrderTest(){
+    static void testGetAccountIdToOrderMapWhenOrder(){
 
-        List<Account> testAccountsList = [
-            SELECT Id, OwnerId
-            FROM Account
-            WHERE Name = 'testAccount2'
-        ];
-        Set<Id> accountIdSet = (new Map<Id,SObject>(testAccountsList).keySet());
+        // Get test account Ids
+        Set<Id> accountIdSet = getAccountIdsByName('testAccount2');
 
         Test.startTest();
         Map<Id,Order> mapAccountIdToOrder = AccountService.getAccountIdToOrderMap(accountIdSet);
         Test.stopTest();
 
-        System.assertEquals(1, mapAccountIdToOrder.size());
+        System.assertEquals(1, mapAccountIdToOrder.size(), 'One order was expected for the accound');
     }
 
     @isTest
-    static void getAccountIdToTaskWhenNoTaskTest(){
+    static void testGetAccountIdToTaskWhenNoTask(){
 
-        List<Account> testAccountsList = [
-            SELECT Id
-            FROM Account
-            WHERE Name = 'testAccount1'
-        ];
-        Set<Id> accountIdSet = (new Map<Id,SObject>(testAccountsList).keySet());
+        // Get test account Ids
+        Set<Id> accountIdSet = getAccountIdsByName('testAccount1');
 
         Test.startTest();
         Map<Id,Task> mapAccountIdToTask = AccountService.getAccountIdToTaskMap(accountIdSet);
@@ -78,19 +69,31 @@ public with sharing class TestAccountService{
     }
 
     @isTest
-    static void getAccountIdToTaskWhenTask(){
+    static void testGetAccountIdToTaskWhenTask(){
 
-        List<Account> testAccountsList = [
-            SELECT Id, OwnerId
-            FROM Account
-            WHERE Name = 'testAccount2'
-        ];
-        Set<Id> accountIdSet = (new Map<Id,SObject>(testAccountsList).keySet());
+        // Get test account Ids
+        Set<Id> accountIdSet = getAccountIdsByName('testAccount2');
 
         Test.startTest();
         Map<Id,Task> mapAccountIdToTask = AccountService.getAccountIdToTaskMap(accountIdSet);
         Test.stopTest();
         
         System.assertEquals(1, mapAccountIdToTask.size());
+    }
+
+    // Helper methods
+
+    static Set<Id> getAccountIdsByName(String accountName) {
+        List<Account> accountsList = [
+            SELECT Id
+            FROM Account
+            WHERE Name = :accountName
+        ];
+
+        Set<Id> accountsIds = new Set<Id>();
+        for (Account account : accountsList) {
+            accountsIds.add(account.Id);
+        }
+        return accountsIds;
     }
 }

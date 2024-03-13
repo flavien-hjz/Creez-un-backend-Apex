@@ -4,8 +4,9 @@ public with sharing class TestCreateReminderOnAccountBatch {
     @TestSetup
     static void makeData(){
 
-        Account account = DataFactory.createAccount('testAccount1');
-        insert account;
+        // Create test accounts
+        Account testAccount1 = DataFactory.createAccount('testAccount1');
+        insert testAccount1;
 
         DataFactory.createOrdersCompleteProcess('testAccount2', 'testProduct2', 100, 1, 1);
         
@@ -14,30 +15,31 @@ public with sharing class TestCreateReminderOnAccountBatch {
     private static String CRON_EXP = '0 0 0 ? * 2#1'; // At midnight, the 1st Monday of the month, every month
 
     @isTest
-    static void testBatchExecution(){
+    static void testBatchExecutionCreatesReminderTasks(){
         
-        List<Account> accountsList = [
+        /*List<Account> accountsList = [
             SELECT Id, Name
             FROM Account
             WHERE Name LIKE 'testAccount%'
-        ];
+        ];*/
 
         Test.startTest();
         CreateReminderOnAccountBatch testBatch = new CreateReminderOnAccountBatch();
         Database.executeBatch(testBatch);
         Test.stopTest();
 
+        // Verify that tasks are created
         List<Task> tasksOnAccountsList = [
             SELECT Id
             FROM Task
-            WHERE WhatId IN: accountsList
+            WHERE WhatId IN (SELECT Id FROM Account WHERE Name LIKE 'testAccount%')
         ];
 
-        System.assertEquals(1, tasksOnAccountsList.size());
+        System.assertEquals(1, tasksOnAccountsList.size(), 'Unexpected number of tasks created');
     }
 
     @isTest
-    static void testScheduler(){
+    static void testSchedulerCreatesScheduledJob(){
 
         Test.startTest();
         CreateReminderOnAccountBatch scheduler = new CreateReminderOnAccountBatch();
@@ -50,7 +52,7 @@ public with sharing class TestCreateReminderOnAccountBatch {
             WHERE ID = :jobId];
         System.debug('Next Fire Time' + cts[0].NextFireTime);
 
-        System.assertNotEquals(null, jobId);
-
+        // Verify job is scheduled
+        System.assertNotEquals(null, jobId, 'No job was scheduled');
     }
 }

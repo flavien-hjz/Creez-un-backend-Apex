@@ -1,7 +1,9 @@
 global with sharing class CreateReminderOnAccountBatch implements Database.Batchable<SObject>, Schedulable {
 
+    // Start method returns the query locator for the batch job
     global Database.QueryLocator start(Database.BatchableContext bc){
 
+        // Query all inactive accounts without reminders
         return Database.getQueryLocator([
             SELECT Id, OwnerId
             FROM Account
@@ -9,16 +11,26 @@ global with sharing class CreateReminderOnAccountBatch implements Database.Batch
         ]);
     }
 
+    // Execute methode creates tasks for each account withtout associated order or task
     global void execute(Database.BatchableContext bc, List<Account> scope){
         
+        // List to hold new task recors to be inserted
         List<Task> tasksList = new List<Task>();
+
+        // Set to hold accounts Ids for efficient querying
         Set<Id> accountIdSet = (new Map<Id,SObject>(scope)).keySet();
+
+        // Query orders and tasks associated with the accounts
         Map<Id,Order> mapAccountIdToOrder = AccountService.getAccountIdToOrderMap(accountIdSet);
         Map<Id,Task> mapAccountIdToTask = AccountService.getAccountIdToTaskMap(accountIdSet);
 
+        // Loop through each account in the batch
         for (Account account : scope){
 
+            // Check if the account has no associated order or task
             if (mapAccountIdToOrder.get(account.id) == null && mapAccountIdToTask.get(account.id) == null){
+
+                // Create a new task for the account
                 Task task = new Task(
                     WhatId = account.Id,
                     OwnerId = account.OwnerId,
@@ -27,16 +39,18 @@ global with sharing class CreateReminderOnAccountBatch implements Database.Batch
                     Priority = 'Normal',
                     ReminderDateTime = Date.today()+5
                 );
-                tasksList.add(task);
+                tasksList.add(task); // Add task to the list
             }
         }
-        insert tasksList;
+        insert tasksList; // Insert all new tasks
     }
 
+    // Finish method is called after the batch job is completed
     global void finish(Database.BatchableContext bc){
-
+        // Additional cleanup or post-processing can be performed here
     }
 
+    // Execute method to schedule the batch job
     global void execute(SchedulableContext sc){
         CreateReminderOnAccountBatch scheduledBatch = new CreateReminderOnAccountBatch();
         Database.executeBatch(scheduledBatch);
