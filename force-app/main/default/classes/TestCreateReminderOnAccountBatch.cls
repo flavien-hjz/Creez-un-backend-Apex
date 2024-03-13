@@ -17,12 +17,6 @@ public with sharing class TestCreateReminderOnAccountBatch {
     @isTest
     static void testBatchExecutionCreatesReminderTasks(){
         
-        /*List<Account> accountsList = [
-            SELECT Id, Name
-            FROM Account
-            WHERE Name LIKE 'testAccount%'
-        ];*/
-
         Test.startTest();
         CreateReminderOnAccountBatch testBatch = new CreateReminderOnAccountBatch();
         Database.executeBatch(testBatch);

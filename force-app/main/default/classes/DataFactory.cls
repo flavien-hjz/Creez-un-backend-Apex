@@ -1,3 +1,4 @@
+@isTest
 public with sharing class DataFactory {
 
     public static Account createAccount(String accountName) {

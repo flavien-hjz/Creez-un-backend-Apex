@@ -8,7 +8,7 @@ public with sharing class TestOrderHandler {
     }
 
     @isTest
-    static void updateStatusOrderWithProductTest(){
+    static void testUpdateStatusOrderWithProduct(){
         List<Order> ordersList = getOrdersByAccountName('testAccount1');
     
     List<Order> activatedOrders = new List<Order>();
@@ -29,7 +29,7 @@ public with sharing class TestOrderHandler {
     }
 
     @isTest
-    static void updateStatusOrderWithNoProductTest(){
+    static void testUpdateStatusOrderWithNoProduct(){
         List<Order> ordersList = getOrdersByAccountName('testAccount2');
 
         List<Order> activatedOrders = new List<Order>();
@@ -55,7 +55,7 @@ public with sharing class TestOrderHandler {
     }
 
     @isTest
-    static void checkAccountInactiveOnCreationTest(){
+    static void testAccountIsInactiveOnCreation(){
         Account account = DataFactory.createAccount('testAccount3');
         insert account;
 
@@ -63,7 +63,7 @@ public with sharing class TestOrderHandler {
     }
 
     @isTest
-    static void checkAccountIsActiveOnOrderCreationTest(){
+    static void testAccountIsActivedOnOrderCreation(){
         Account account = DataFactory.createAccount('testAccount4');
         insert account;
 
@@ -83,7 +83,7 @@ public with sharing class TestOrderHandler {
     }
 
     @isTest
-    static void checkAccountIsInactiveOnOrderDeletionTest(){
+    static void testAccountIsDeactivedOnOrderDeletion(){
         Account account = DataFactory.createAccount('testAccount5');
         insert account;
 
