@@ -1,5 +1,6 @@
 public with sharing class OrderHandler {
 
+    // Method to validate orders status and number of products
     public static void updateOrderStatus(List<Order> ordersList){
 
         for (Order order : ordersList) {
@@ -9,62 +10,65 @@ public with sharing class OrderHandler {
             If the condition is false, the update occurs. If not, an error message displays*/
 
             if (order.Status == 'Activated' && order.Number_of_products__c == 0){
+                // Add error message to prevent activation of orders without products
                 order.addError('Your Order must have at least one product to be activated');
             }
         }
     }
 
-    public static void makeAccountActive(List<Order> ordersList){
+    // Method to activate accounts associated with orders
+    public static void activateAccounts(List<Order> ordersList){
         
-        // First, we retrieve all accounts ids from the trigger
-        
-        List<Id> accountsFromTriggerList = new List<Id>();
+        // First, we retrieve unique account IDs from orders in the trigger list
+        Set<Id> accountsIds = new Set<Id>();
         for (Order order : ordersList){
-            accountsFromTriggerList.add(order.AccountId);
+            accountsIds.add(order.AccountId);
         }
 
-        // Then, we search accounts than can be found in the trigger list and on the Order object as well
-
-        List<Account> accountsToTurnOnList = [
-            SELECT Id, Active__c, (SELECT Id, AccountId FROM Orders)
-            FROM Account
-            WHERE Id IN:accountsFromTriggerList
-        ];
-
-        // Finally, we make active the accounts found that are still inactive
-
-        for (Account account : accountsToTurnOnList){
-            if (account.Active__c == false){
-                account.Active__c = true;
-            }
-        }
-        update accountsToTurnOnList;
-    }
-
-    public static void makeAccountInactive(List<Order> ordersList){
-
-        // First, we retrieve all accounts ids from the trigger
-
-        List<Id> accountsFromTriggerList = new List<Id>();
-        for (Order order : ordersList){
-            accountsFromTriggerList.add(order.AccountId);
-        }
-
-        // Then, we search accounts than can be found in the trigger list but not on the Order object
-
-        List<Account> accountsToTurnOffList = [
+        // Then, we query inactive accounts associated with orders in the trigger list
+        List<Account> accountsToUpdate = [
             SELECT Id, Active__c
             FROM Account
-            WHERE Id IN:accountsFromTriggerList
+            WHERE Id IN:accountsIds AND Active__c = false
+        ];
+
+        // Finally, we activate the accounts found that are inactive
+        for (Account account : accountsToUpdate){
+            account.Active__c = true;
+        }
+
+        if (!accountsToUpdate.isEmpty()){
+            update accountsToUpdate;
+        }
+        
+    }
+
+    // Method to deactivate accounts not associated with orders
+    public static void deactivateAccounts(List<Order> ordersList){
+
+        // First, we retrieve unique account IDs from orders in the trigger list
+        Set<Id> accountsIds = new Set<Id>();
+        for (Order order : ordersList){
+            accountsIds.add(order.AccountId);
+        }
+
+        // Then, we query active accounts not associated with any orders in the trigger list
+        List<Account> accountsToUpdate = [
+            SELECT Id, Active__c
+            FROM Account
+            WHERE Id IN:accountsIds
+            AND Active__c = true
             AND Id NOT IN (SELECT AccountId FROM Order)
         ];
 
-        // Finally, we make the accounts found inactive
-
-        for (Account account : accountsToTurnOffList){
+        // Finally, we deactive the accounts found that are not associated with any order
+        for (Account account : accountsToUpdate){
             account.Active__c = false;
         }
-        update accountsToTurnOffList;
+
+        if (!accountsToUpdate.isEmpty()){
+            update accountsToUpdate;
+        }
     }
 
 }

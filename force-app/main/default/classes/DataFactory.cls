@@ -59,7 +59,7 @@ public with sharing class DataFactory {
         return orderItems;
     }
 
-    public static List<Order> createOrdersCompleteProcess(String accountName, String productName, Double unitPrice, Integer numberofOrders, Integer productQuantity){
+    public static List<Order> createOrdersCompleteProcess(String accountName, String productName, Double unitPrice, Integer numberOfOrders, Integer productQuantity){
 
         Account account = DataFactory.createAccount(accountName);
         insert account;

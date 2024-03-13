@@ -9,13 +9,8 @@ public with sharing class TestOrderHandler {
 
     @isTest
     static void updateStatusOrderWithProductTest(){
-        List<Order> ordersList = [
-            SELECT Id, OrderNumber, Order.Account.Name
-            FROM Order
-            WHERE Account.Name = 'testAccount1'
-            ];
+        List<Order> ordersList = getOrdersByAccountName('testAccount1');
     
-
     List<Order> activatedOrders = new List<Order>();
     
     Test.startTest();
@@ -28,22 +23,14 @@ public with sharing class TestOrderHandler {
 
     Test.stopTest();
 
-    List<Order> updatedOrdersList = [
-        SELECT Id, OrderNumber
-        FROM Order
-        WHERE Status = 'Activated'
-    ];
+    List<Order> updatedOrdersList = getOrdersByStatus('Activated');
 
-    System.assertEquals(1, updatedOrdersList.size());
+    System.assertEquals(1, updatedOrdersList.size(), 'One order should have been updated');
     }
 
     @isTest
     static void updateStatusOrderWithNoProductTest(){
-        List<Order> ordersList = [
-            SELECT Id, OrderNumber, Order.Account.Name
-            FROM Order
-            WHERE Account.Name = 'testAccount2'
-        ];
+        List<Order> ordersList = getOrdersByAccountName('testAccount2');
 
         List<Order> activatedOrders = new List<Order>();
 
@@ -62,13 +49,9 @@ public with sharing class TestOrderHandler {
 
         Test.stopTest();
 
-        List<Order> updatedOrdersList = [
-            SELECT Id, OrderNumber
-            FROM Order
-            WHERE Status = 'Activated'
-        ];
+        List<Order> updatedOrdersList = getOrdersByStatus('Activated');
 
-        System.assertEquals(0, updatedOrdersList.size());
+        System.assertEquals(0, updatedOrdersList.size(), 'No order should have been updated');
     }
 
     @isTest
@@ -76,7 +59,7 @@ public with sharing class TestOrderHandler {
         Account account = DataFactory.createAccount('testAccount3');
         insert account;
 
-        System.assertEquals(false, account.Active__c);
+        System.assertEquals(false, account.Active__c, 'Account should be inactive on creation');
     }
 
     @isTest
@@ -96,7 +79,7 @@ public with sharing class TestOrderHandler {
             WHERE Name = 'testAccount4'
         ];
 
-        System.assertEquals(true, activatedAccount.Active__c);
+        System.assertEquals(true, activatedAccount.Active__c, 'Account should be active after order creation');
     }
 
     @isTest
@@ -117,6 +100,24 @@ public with sharing class TestOrderHandler {
             WHERE Name = 'testAccount5'
         ];
 
-        System.assertEquals(false, deactivatedAccount.Active__c);
+        System.assertEquals(false, deactivatedAccount.Active__c, 'Account should be inactive after order deletion');
+    }
+
+    // Helper methods
+
+    static List<Order> getOrdersByAccountName(String accountName){
+        return [
+            SELECT Id, OrderNumber, Order.Account.Name
+            FROM Order
+            WHERE Account.Name = :accountName
+        ];
+    }
+
+    static List<Order> getOrdersByStatus(String status){
+        return [
+            SELECT Id, OrderNumber
+            FROM Order
+            WHERE Status = :status
+        ];
     }
 }

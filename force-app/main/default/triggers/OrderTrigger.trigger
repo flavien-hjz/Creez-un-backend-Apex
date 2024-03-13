@@ -8,11 +8,11 @@ trigger OrderTrigger on Order (before update, after insert, after delete) {
 
   if(Trigger.isAfter){
     if(Trigger.isInsert){
-      OrderHandler.makeAccountActive(trigger.new);
+      OrderHandler.activateAccounts(trigger.new);
     }
     
     if(Trigger.isDelete){
-      OrderHandler.makeAccountInactive(trigger.old);
+      OrderHandler.deactivateAccounts(trigger.old);
     }
   }
 
