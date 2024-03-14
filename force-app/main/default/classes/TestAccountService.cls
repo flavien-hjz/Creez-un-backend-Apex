@@ -23,6 +23,7 @@ public with sharing class TestAccountService{
             Subject = 'Call',
             Status = 'Not Started',
             Priority = 'Normal',
+            IsReminderSet = true,
             ReminderDateTime = Date.today()+5
         );
         insert testTask;

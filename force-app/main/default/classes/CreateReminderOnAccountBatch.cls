@@ -37,6 +37,7 @@ global with sharing class CreateReminderOnAccountBatch implements Database.Batch
                     Subject = 'Call',
                     Status = 'Not Started',
                     Priority = 'Normal',
+                    IsReminderSet = true,
                     ReminderDateTime = Date.today()+5
                 );
                 tasksList.add(task); // Add task to the list
